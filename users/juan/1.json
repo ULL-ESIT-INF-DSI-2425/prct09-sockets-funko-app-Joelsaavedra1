@@ -1,0 +1,12 @@
+{
+  "ID": "1",
+  "name": "Spider-Man",
+  "description": "Un Funko de Spider-Man con traje clásico",
+  "type": "Pop!",
+  "genre": "Películas y TV",
+  "franchise": "Marvel",
+  "num_franchise": 100,
+  "exclusive": true,
+  "special_specs": "Brilla en la oscuridad",
+  "market_value": 50
+}
