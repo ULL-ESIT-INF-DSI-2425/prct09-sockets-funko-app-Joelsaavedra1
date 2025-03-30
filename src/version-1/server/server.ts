@@ -10,21 +10,85 @@ import { RequestType, ResponseType } from "../types/types.js";
  */
 const server = net.createServer({ allowHalfOpen: true }, (socket) => {
   console.log("Client connected");
-  
+
   let dataBuffer = "";
   socket.on("data", (data) => {
     dataBuffer += data.toString();
-    const request: RequestType = JSON.parse(dataBuffer);
-    console.log("Request received:", request);
-    const manager: FunkoManager = new FunkoManager(request.user.toLowerCase());
-    let response: ResponseType;
-    switch (request.type) {
-      case "add":
-        console.log("Handling 'add' request");
-        if (request.funko) {
-          manager.addFunko(request.funko, (message) => {
+  });
+  socket.on("end", () => {
+    try {
+      const request: RequestType = JSON.parse(dataBuffer);
+      console.log("Request received:", request);
+      const manager: FunkoManager = new FunkoManager(
+        request.user.toLowerCase(),
+      );
+      let response: ResponseType;
+      switch (request.type) {
+        case "add":
+          console.log("Handling 'add' request");
+          if (request.funko) {
+            manager.addFunko(request.funko, (message) => {
+              response = {
+                type: "add",
+                success: true,
+                message,
+              };
+              socket.write(JSON.stringify(response), () => {
+                socket.end();
+              });
+            });
+          }
+          break;
+        case "remove":
+          console.log("Handling 'remove' request");
+          if (request.id) {
+            manager.removeFunko(request.id, (message) => {
+              response = {
+                type: "remove",
+                success: true,
+                message,
+              };
+              socket.write(JSON.stringify(response), () => {
+                socket.end();
+              });
+            });
+          }
+          break;
+        case "update":
+          console.log("Handling 'update' request");
+          if (request.funko) {
+            manager.updateFunko(request.funko, (message) => {
+              response = {
+                type: "update",
+                success: true,
+                message,
+              };
+              socket.write(JSON.stringify(response), () => {
+                socket.end();
+              });
+            });
+          }
+          break;
+        case "show":
+          console.log("Handling 'show' request");
+          if (request.id) {
+            manager.showFunko(request.id, (message) => {
+              response = {
+                type: "show",
+                success: true,
+                message,
+              };
+              socket.write(JSON.stringify(response), () => {
+                socket.end();
+              });
+            });
+          }
+          break;
+        case "list":
+          console.log("Handling 'list' request");
+          manager.listFunkos((message) => {
             response = {
-              type: "add",
+              type: "list",
               success: true,
               message,
             };
@@ -32,76 +96,28 @@ const server = net.createServer({ allowHalfOpen: true }, (socket) => {
               socket.end();
             });
           });
-        }
-        break;
-      case "remove":
-        console.log("Handling 'remove' request");
-        if (request.id) {
-          manager.removeFunko(request.id, (message) => {
-            response = {
-              type: "remove",
-              success: true,
-              message,
-            };
-            socket.write(JSON.stringify(response), () => {
-              socket.end();
-            });
-          });
-        }
-        break;
-      case "update":
-        console.log("Handling 'update' request");
-        if (request.funko) {
-          manager.updateFunko(request.funko, (message) => {
-            response = {
-              type: "update",
-              success: true,
-              message,
-            };
-            socket.write(JSON.stringify(response), () => {
-              socket.end();
-            });
-          });
-        }
-        break;
-      case "show":
-        console.log("Handling 'show' request");
-        if (request.id) {
-          manager.showFunko(request.id, (message) => {
-            response = {
-              type: "show",
-              success: true,
-              message,
-            };
-            socket.write(JSON.stringify(response), () => {
-              socket.end();
-            });
-          });
-        }
-        break;
-      case "list":
-        console.log("Handling 'list' request");
-        manager.listFunkos((message) => {
+          break;
+        default:
           response = {
-            type: "list",
-            success: true,
-            message,
+            type: "error",
+            success: false,
+            message: "Invalid request type",
           };
           socket.write(JSON.stringify(response), () => {
             socket.end();
           });
-        });
-        break;
-      default:
-        response = {
-          type: "error",
-          success: false,
-          message: "Invalid request type",
-        };
-        socket.write(JSON.stringify(response), () => {
-          socket.end();
-        });
-        break;
+          break;
+      }
+    } catch (error) {
+      console.error("Error parsing request:", error);
+      const response: ResponseType = {
+        type: "error",
+        success: false,
+        message: "Invalid JSON format",
+      };
+      socket.write(JSON.stringify(response), () => {
+        socket.end();
+      });
     }
   });
   socket.on("end", () => {
@@ -111,7 +127,6 @@ const server = net.createServer({ allowHalfOpen: true }, (socket) => {
     console.error("Socket error:", err);
   });
 });
-
 /**
  * This function wait for a connection from a client.
  */
