@@ -139,8 +139,7 @@ client.on("data", (data) => {
 });
 
 /**
- * This function handles the error received from the server
- * @param error - The error received from the server
+ * This function end the session when the server decides to do so
  */
 client.on("end", () => {
   console.log("Disconnected from server");
